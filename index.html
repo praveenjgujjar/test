@@ -47,10 +47,9 @@
   <div id="status">Click the button to start scanning.</div>
 
   <script>
-    const sheetURL = 'https://script.google.com/macros/s/AKfycbxYOzQD5hseOMVP_xoW_RYtHfEKKN6OLX43ruRCJQr3MX0u9iJSApJ55eROXmU0dhAZ/exec'; // Replace with your actual script URL
+    const sheetURL = 'https://script.google.com/macros/s/AKfycbxyMmf3sQl8Dltpe7JtG238YXQXUHcKtNBtsjm70yOMV35o1jopnTTDKOuEYRfdrY7O/exec'; // Replace with your Apps Script Web App URL
     const html5QrCode = new Html5Qrcode("reader");
 
-    // Send scanned data to Google Sheets
     function sendToSheets(data) {
       fetch(sheetURL, {
         method: 'POST',
@@ -60,7 +59,7 @@
       .then(response => response.text())
       .then(result => {
         document.getElementById('status').textContent = '✅ Data sent successfully!';
-        setTimeout(() => location.reload(), 3000); // Restart after 3 seconds
+        setTimeout(() => location.reload(), 3000);
       })
       .catch(error => {
         document.getElementById('status').textContent = '❌ Failed to send data.';
@@ -68,18 +67,16 @@
       });
     }
 
-    // When QR code is successfully scanned
     function onScanSuccess(decodedText, decodedResult) {
       document.getElementById('status').textContent = '📤 Scanned: ' + decodedText;
       html5QrCode.stop().then(() => {
-        sendToSheets(decodedText); // Send data after stopping camera
+        sendToSheets(decodedText);
       }).catch(err => {
         document.getElementById('status').textContent = '❌ Failed to stop camera.';
         console.error('Stop error:', err);
       });
     }
 
-    // Start scanning on button click
     document.getElementById("startScanBtn").addEventListener("click", () => {
       document.getElementById("reader").style.display = "block";
       document.getElementById('status').textContent = '🔄 Starting camera...';
@@ -87,9 +84,7 @@
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 250 } },
         onScanSuccess,
-        errorMessage => {
-          // silently ignore scan errors
-        }
+        errorMessage => {}
       ).catch(err => {
         document.getElementById('status').textContent = '❌ Unable to access camera: ' + err;
         console.error('Camera start error:', err);
