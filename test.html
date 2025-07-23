@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>QR Scanner to Google Sheets</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #f8f9fa;
+    }
+    h2 {
+      color: #333;
+    }
+    #reader {
+      width: 100%;
+      max-width: 350px;
+      margin: 20px auto;
+      display: none;
+    }
+    #status {
+      margin-top: 15px;
+      font-weight: bold;
+      color: green;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: #007BFF;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h2>Scan QR Code & Submit to Google Sheets</h2>
+  <button id="startScanBtn">Start QR Scan</button>
+  <div id="reader"></div>
+  <div id="status">Click the button to start scanning.</div>
+
+  <script>
+    const sheetURL = 'https://script.google.com/macros/s/AKfycbxYOzQD5hseOMVP_xoW_RYtHfEKKN6OLX43ruRCJQr3MX0u9iJSApJ55eROXmU0dhAZ/exec'; // Replace with your actual script URL
+    const html5QrCode = new Html5Qrcode("reader");
+
+    // Send scanned data to Google Sheets
+    function sendToSheets(data) {
+      fetch(sheetURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: data
+      })
+      .then(response => response.text())
+      .then(result => {
+        document.getElementById('status').textContent = '? Data sent successfully!';
+        setTimeout(() => location.reload(), 3000); // Restart after 3 seconds
+      })
+      .catch(error => {
+        document.getElementById('status').textContent = '? Failed to send data.';
+        console.error('Send error:', error);
+      });
+    }
+
+    // When QR code is successfully scanned
+    function onScanSuccess(decodedText, decodedResult) {
+      document.getElementById('status').textContent = '?? Scanned: ' + decodedText;
+      html5QrCode.stop().then(() => {
+        sendToSheets(decodedText); // Send data after stopping camera
+      }).catch(err => {
+        document.getElementById('status').textContent = '? Failed to stop camera.';
+        console.error('Stop error:', err);
+      });
+    }
+
+    // Start scanning on button click
+    document.getElementById("startScanBtn").addEventListener("click", () => {
+      document.getElementById("reader").style.display = "block";
+      document.getElementById('status').textContent = '?? Starting camera...';
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        onScanSuccess,
+        errorMessage => {
+          // silently ignore scan errors
+        }
+      ).catch(err => {
+        document.getElementById('status').textContent = '? Unable to access camera: ' + err;
+        console.error('Camera start error:', err);
+      });
+    });
+  </script>
+</body>
+</html>
